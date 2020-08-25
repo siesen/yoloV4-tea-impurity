@@ -1,7 +1,7 @@
 # YOLOV4：基于yoloV4的茶叶杂质检测
 ---
 
-
+![image](https://raw.githubusercontent.com/siesen/yoloV4-tea-impurity/master/1.bmp)
 
 ### 目录
 1. [所需环境 Environment](#所需环境)
