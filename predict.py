@@ -36,45 +36,6 @@ def get_IOU(ypre,ytrue):
     return IOU
 
 def statistics(ypre_list,ytrue_list,iou_threshold):
-    TP=FP=FN=0
-   
-    q=queue.Queue(10)
-    #ytrue进队列
-    if ytrue_list!=None:
-        for each in ytrue_list:
-            q.put_nowait(each)
-
-    #进行比对iou
-    if ypre_list!=None:
-        for ypre in ypre_list:
-            if q.empty():
-                #多预测出来的框框
-                FP+=1
-            else:
-                lenth=q.qsize()
-                counter=0
-                #没有找到匹配的框框，从队列中取出进行iou
-                while(counter<lenth):
-                    ytrue=q.get_nowait()
-                    iou=get_IOU(ypre,ytrue)
-                    #预测匹配
-                    if iou>iou_threshold:
-                        TP+=1
-                        break
-                    #预测不匹配，ytrue放回
-                    else:
-                        q.put_nowait(ytrue)
-                        counter+=1
-                #队列中没有能够匹配的框框，即预测错误
-                else:
-                    FP+=1
-
-    #队列中剩下的即是FN
-    FN=q.qsize()
-
-    return TP,FP,FN
-
-def statistics_new(ypre_list,ytrue_list,iou_threshold):
     ypre_lenth=len(ypre_list)
     ytrue_lenth=len(ytrue_list)
     TP=0
@@ -96,7 +57,7 @@ def statistics_new(ypre_list,ytrue_list,iou_threshold):
     for col in range(ypre_lenth):
         matched=max(A[:,col,0])
         matched_array=np.argwhere(A[:,col,0]==matched)
-        if A[matched_array[0][0],col,1]==0 and matched>iou_threshold:
+        if A[matched_array[0][0],col,1]==0 and max(A[matched_array[0][0],:,0])==matched and matched>iou_threshold:
             TP+=1
             #已配对的话，后面的ytrue就不用比了
             for i in range(ypre_lenth):
@@ -156,10 +117,10 @@ for img in imgs_pred:
     else:
         ytrue_box=[]
 
-    print(predict_boxes,ytrue_box[1:])
+    # print(predict_boxes,ytrue_box[1:])
 
     #统计预测框与真实框的正确值和误判值
-    TP,FP,FN=statistics_new(predict_boxes,ytrue_box[1:],iou_threshold)
+    TP,FP,FN=statistics(predict_boxes,ytrue_box[1:],iou_threshold)
     TP_sum+=TP
     FP_sum+=FP
     FN_sum+=FN
@@ -168,7 +129,7 @@ for img in imgs_pred:
     cv2.putText(frame,text,(10,30),cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 
     cv2.imshow(img,frame)
-    cv2.imwrite(os.path.join(img_save_path,img),frame)
+    # cv2.imwrite(os.path.join(img_save_path,img),frame)
     cv2.waitKey(0)
     # time.sleep(1)
     cv2.destroyAllWindows()
